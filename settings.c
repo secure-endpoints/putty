@@ -24,6 +24,11 @@ static const struct keyvalwhere kexnames[] = {
     { "dh-gex-sha1",        KEX_DHGEX,      -1, -1 },
     { "dh-group14-sha1",    KEX_DHGROUP14,  -1, -1 },
     { "dh-group1-sha1",     KEX_DHGROUP1,   -1, -1 },
+#ifndef NO_GSSAPI
+    { "gss-gex-sha1",       KEX_GSSGEX,     -1, -1 },
+    { "gss-group14-sha1",   KEX_GSSGROUP14, -1, -1 },
+    { "gss-group1-sha1",    KEX_GSSGROUP1,  -1, -1 },
+#endif
     { "rsa",                KEX_RSA,        KEX_WARN, -1 },
     { "WARN",               KEX_WARN,       -1, -1 }
 };
@@ -790,12 +795,23 @@ void load_open_settings(void *sesskey, Conf *conf)
 	 * a server version string or any other reports. */
 	const char *default_kexes;
 	i = 2 - gppi_raw(sesskey, "BugDHGEx2", 0);
+#ifndef NO_GSSAPI
+       if (i == FORCE_ON)
+           default_kexes = "gss-group14-sha1,gss-group1-sha1,"
+		   "ecdh,dh-group14-sha1,dh-group1-sha1,rsa,"
+		   "WARN,gss-gex-sha1,dh-gex-sha1";
+       else
+           default_kexes = "gss-gex-sha1,gss-group14-sha1,gss-group1-sha1,"
+		   "ecdh,dh-gex-sha1,dh-group14-sha1,"
+		   "dh-group1-sha1,rsa,WARN";
+#else
 	if (i == FORCE_ON)
             default_kexes = "ecdh,dh-group14-sha1,dh-group1-sha1,rsa,"
                 "WARN,dh-gex-sha1";
 	else
             default_kexes = "ecdh,dh-gex-sha1,dh-group14-sha1,"
                 "dh-group1-sha1,rsa,WARN";
+#endif
 	gprefs(sesskey, "KEX", default_kexes,
 	       kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
     }
